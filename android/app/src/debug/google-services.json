@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "615927361885",
+    "project_id": "suvidha-9th-sept-24",
+    "storage_bucket": "suvidha-9th-sept-24.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:615927361885:android:ec9eb4c98a8eb53f50b8b4",
+        "android_client_info": {
+          "package_name": "com.orbitxmedia.suvidha"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPjZGfcSc04OJNqVIhBMDRQj-umGVdDTU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

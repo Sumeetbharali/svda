@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "669490647432",
+    "project_id": "suvidha-ddcb4",
+    "storage_bucket": "suvidha-ddcb4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669490647432:android:e6e37bb3f2f0a63a426a3d",
+        "android_client_info": {
+          "package_name": "com.orbitxmedia.suvidha"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBx7vcS2qjWf_VA6B0newPD0be8WsklpgY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
