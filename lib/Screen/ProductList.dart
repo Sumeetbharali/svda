@@ -6,6 +6,7 @@ import 'package:eshop/Helper/SqliteData.dart';
 import 'package:eshop/Provider/CartProvider.dart';
 import 'package:eshop/Provider/FavoriteProvider.dart';
 import 'package:eshop/Provider/UserProvider.dart';
+import 'package:eshop/Provider/get_brands.dart';
 import 'package:eshop/app/routes.dart';
 import 'package:eshop/ui/widgets/AppBtn.dart';
 import 'package:eshop/ui/widgets/SimBtn.dart';
@@ -121,11 +122,18 @@ class StateProduct extends State<ProductListScreen>
   String lastWords = '';
   List<LocaleName> _localeNames = [];
   bool isFilterClear = false;
+  List<String> selectedBrands = [];
+  String? brandIds;
+
+  void fetchFilteredProducts() {
+    brandIds = selectedBrands.join(',');
+  }
 
   @override
   void initState() {
     super.initState();
     offset = 0;
+
     controller = ScrollController(keepScrollOffset: true);
     controller.addListener(_scrollListener);
     _controller1.addListener(() {
@@ -187,6 +195,21 @@ class StateProduct extends State<ProductListScreen>
           if (offset < total) getProduct("0");
         });
       }
+    }
+  }
+
+  List<bool> isselectedBrands = [];
+  int? selectedBrandId;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final providerBrand =
+        Provider.of<GetBrandsProvider>(context, listen: false);
+    providerBrand.getBrandId(brandId: "1");
+    final dataLength = providerBrand.brandModel?.data?.length ?? 0;
+
+    if (isselectedBrands.length != dataLength) {
+      isselectedBrands = List<bool>.filled(dataLength, false);
     }
   }
 
@@ -459,6 +482,8 @@ class StateProduct extends State<ProductListScreen>
                                       children: <Widget>[
                                         Text(
                                           model.name!,
+                                          textScaler:
+                                              const TextScaler.linear(0.9),
                                           style: Theme.of(context)
                                               .textTheme
                                               .titleMedium!
@@ -466,7 +491,7 @@ class StateProduct extends State<ProductListScreen>
                                                   color: Theme.of(context)
                                                       .colorScheme
                                                       .lightBlack),
-                                          maxLines: 1,
+                                          maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         model.prVarientList![model.selVarient!]
@@ -1071,7 +1096,7 @@ class StateProduct extends State<ProductListScreen>
     }
   }
 
-  Future getProduct(String top, {bool? clear}) async {
+  Future getProduct(String top, {bool? clear, String? selectedBrandId}) async {
     productFetchingIsOngoing = true;
     _isNetworkAvail = await isNetworkAvailable();
     if (_isNetworkAvail) {
@@ -1080,6 +1105,7 @@ class StateProduct extends State<ProductListScreen>
           if (mounted) {
             setState(() {
               isLoadingmore = false;
+              // ignore: invalid_use_of_protected_member
               if (_controller1.hasListeners && _controller1.text.isNotEmpty) {
                 _isLoading = true;
               }
@@ -1089,23 +1115,24 @@ class StateProduct extends State<ProductListScreen>
           var parameter = {
             SEARCH: query.trim(),
             LIMIT: perPage.toString(),
-            OFFSET: offset.toString(),
+            if (selectedBrandId == null) OFFSET: offset.toString(),
             TOP_RETAED: top,
+            "brand_id": selectedBrandId ?? "0",
           };
 
           if (context.read<UserProvider>().userId != "") {
             parameter[USER_ID] = context.read<UserProvider>().userId;
           }
-          if (selId != "") {
-            parameter[ATTRIBUTE_VALUE_ID] = selId;
-          }
+          // if (selId != "") {
+          //   parameter[ATTRIBUTE_VALUE_ID] = selId;
+          // }
           print("id----->${widget.id}");
           if (widget.tag! && widget.name == null) parameter[TAG] = widget.name!;
           if (widget.id != null) {
             if (widget.fromSeller!) {
               parameter["seller_id"] = widget.id!;
-            } else if (widget.brandId != null) {
-              parameter["brand_id"] = widget.brandId!;
+              // } else if (widget.brandId != null) {
+              //   parameter["brand_id"] = widget.brandId!;
             } else {
               parameter[CATID] = widget.id ?? '';
             }
@@ -2693,56 +2720,63 @@ class StateProduct extends State<ProductListScreen>
         _currentRangeValues =
             RangeValues(double.parse(minPrice), double.parse(maxPrice));
         return StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-          return Column(mainAxisSize: MainAxisSize.min, children: [
-            Padding(
-                padding: const EdgeInsetsDirectional.only(top: 30.0),
-                child: AppBar(
-                  title: Text(
-                    getTranslated(context, 'FILTER')!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.fontColor,
-                    ),
-                  ),
-                  centerTitle: true,
-                  elevation: 5,
-                  backgroundColor: Theme.of(context).colorScheme.white,
-                  leading: Builder(builder: (BuildContext context) {
-                    return Container(
-                      margin: const EdgeInsets.all(10),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(4),
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(end: 4.0),
-                          child: Icon(Icons.arrow_back_ios_rounded,
-                              color:
-                                  Theme.of(context).colorScheme.primarytheme),
-                        ),
+          builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(top: 30.0),
+                  child: AppBar(
+                    title: Text(
+                      getTranslated(context, 'FILTER')!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.fontColor,
                       ),
-                    );
-                  }),
-                )),
-            Expanded(
-                child: Container(
-              color: Theme.of(context).colorScheme.lightWhite,
-              padding: const EdgeInsetsDirectional.only(
-                  start: 7.0, end: 7.0, top: 7.0),
-              child: filterList != null
-                  ? ListView.builder(
-                      shrinkWrap: true,
-                      scrollDirection: Axis.vertical,
-                      padding: const EdgeInsetsDirectional.only(top: 10.0),
-                      itemCount: filterList.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == 0) {
-                          return Column(
-                            children: [
-                              SizedBox(
-                                  width: deviceWidth,
-                                  child: Card(
-                                      elevation: 0,
-                                      child: Padding(
+                    ),
+                    centerTitle: true,
+                    elevation: 5,
+                    backgroundColor: Theme.of(context).colorScheme.white,
+                    leading: Builder(builder: (BuildContext context) {
+                      return Container(
+                        margin: const EdgeInsets.all(10),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(4),
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 4.0),
+                            child: Icon(
+                              Icons.arrow_back_ios_rounded,
+                              color: Theme.of(context).colorScheme.primarytheme,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      // Price Range Filter for Products
+                      Container(
+                        color: Theme.of(context).colorScheme.lightWhite,
+                        padding: const EdgeInsetsDirectional.only(
+                            start: 7.0, end: 7.0, top: 7.0),
+                        child: ListView.builder(
+                            shrinkWrap: true,
+                            scrollDirection: Axis.vertical,
+                            padding:
+                                const EdgeInsetsDirectional.only(top: 10.0),
+                            itemCount: filterList.length + 1,
+                            itemBuilder: (context, index) {
+                              if (index == 0) {
+                                return Column(
+                                  children: [
+                                    SizedBox(
+                                      width: deviceWidth,
+                                      child: Card(
+                                        elevation: 0,
+                                        child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Row(
                                             mainAxisAlignment:
@@ -2754,277 +2788,424 @@ class StateProduct extends State<ProductListScreen>
                                                     .textTheme
                                                     .titleMedium!
                                                     .copyWith(
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .lightBlack,
-                                                        fontWeight:
-                                                            FontWeight.normal),
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .lightBlack,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                    ),
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines: 2,
                                               ),
                                               Text(
-                                                '${getPriceFormat(context, _currentRangeValues!.start.roundToDouble())!} - ${getPriceFormat(context, _currentRangeValues!.end.roundToDouble())!}',
+                                                '${getPriceFormat(context, _currentRangeValues!.start.roundToDouble())} - ${getPriceFormat(context, _currentRangeValues!.end.roundToDouble())}',
                                                 style: Theme.of(context)
                                                     .textTheme
                                                     .titleMedium!
                                                     .copyWith(
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .lightBlack,
-                                                        fontWeight:
-                                                            FontWeight.normal),
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .lightBlack,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                    ),
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines: 2,
                                               ),
                                             ],
-                                          )))),
-                              SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                  showValueIndicator: ShowValueIndicator.never,
-                                ),
-                                child: RangeSlider(
-                                  values: _currentRangeValues!,
-                                  min: double.parse(minPrice),
-                                  max: double.parse(maxPrice),
-                                  divisions: 10,
-                                  activeColor: Theme.of(context)
-                                      .colorScheme
-                                      .primarytheme,
-                                  labels: RangeLabels(
-                                    _currentRangeValues!.start
-                                        .round()
-                                        .toString(),
-                                    _currentRangeValues!.end.round().toString(),
-                                  ),
-                                  onChanged: (RangeValues values) {
-                                    setState(() {
-                                      _currentRangeValues = values;
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
-                        } else {
-                          index = index - 1;
-                          attsubList =
-                              filterList[index]['attribute_values'].split(',');
-
-                          attListId = filterList[index]['attribute_values_id']
-                              .split(',');
-
-                          List<Widget?> chips = [];
-                          List<String> att =
-                              filterList[index]['attribute_values']!.split(',');
-
-                          List<String> attSType =
-                              filterList[index]['swatche_type'].split(',');
-
-                          List<String> attSValue =
-                              filterList[index]['swatche_value'].split(',');
-
-                          for (int i = 0; i < att.length; i++) {
-                            Widget itemLabel;
-                            if (attSType[i] == "1") {
-                              String clr = (attSValue[i].substring(1));
-
-                              String color = "0xff$clr";
-
-                              itemLabel = Container(
-                                width: 25,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(int.parse(color))),
-                              );
-                            } else if (attSType[i] == "2") {
-                              itemLabel = ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.network(attSValue[i],
-                                      width: 80,
-                                      height: 80,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              erroWidget(context, 80)));
-                            } else {
-                              itemLabel = Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Text(att[i],
-                                    style: TextStyle(
-                                        color:
-                                            selectedId.contains(attListId![i])
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .white
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .fontColor)),
-                              );
-                            }
-
-                            choiceChip = ChoiceChip(
-                              selected: selectedId.contains(attListId![i]),
-                              label: itemLabel,
-                              labelPadding: const EdgeInsets.all(0),
-                              selectedColor:
-                                  Theme.of(context).colorScheme.primarytheme,
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    attSType[i] == "1" ? 100 : 10),
-                                side: BorderSide(
-                                    color: selectedId.contains(attListId![i])
-                                        ? Theme.of(context)
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        showValueIndicator:
+                                            ShowValueIndicator.never,
+                                      ),
+                                      child: RangeSlider(
+                                        values: _currentRangeValues!,
+                                        min: double.parse(minPrice),
+                                        max: double.parse(maxPrice),
+                                        divisions: 10,
+                                        activeColor: Theme.of(context)
                                             .colorScheme
-                                            .primarytheme
-                                        : colors.black12,
-                                    width: 1.5),
-                              ),
-                              onSelected: (bool selected) {
+                                            .primarytheme,
+                                        labels: RangeLabels(
+                                          _currentRangeValues!.start
+                                              .round()
+                                              .toString(),
+                                          _currentRangeValues!.end
+                                              .round()
+                                              .toString(),
+                                        ),
+                                        onChanged: (RangeValues values) {
+                                          setState(() {
+                                            _currentRangeValues = values;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              } else {
+                                index = index - 1;
+                                attsubList = filterList[index]
+                                        ['attribute_values']
+                                    .split(',');
                                 attListId = filterList[index]
                                         ['attribute_values_id']
                                     .split(',');
+                                List<Widget?> chips = [];
+                                List<String> att = filterList[index]
+                                        ['attribute_values']!
+                                    .split(',');
+                                List<String> attSType = filterList[index]
+                                        ['swatche_type']
+                                    .split(',');
+                                List<String> attSValue = filterList[index]
+                                        ['swatche_value']
+                                    .split(',');
 
-                                if (mounted) {
-                                  setState(() {
-                                    if (selected == true) {
-                                      selectedId.add(attListId![i]);
-                                    } else {
-                                      selectedId.remove(attListId![i]);
-                                    }
-                                  });
+                                for (int i = 0; i < att.length; i++) {
+                                  Widget itemLabel;
+                                  if (attSType[i] == "1") {
+                                    String clr = (attSValue[i].substring(1));
+                                    String color = "0xff$clr";
+                                    itemLabel = Container(
+                                      width: 25,
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Color(int.parse(color))),
+                                    );
+                                  } else if (attSType[i] == "2") {
+                                    itemLabel = ClipRRect(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      child: Image.network(attSValue[i],
+                                          width: 80,
+                                          height: 80,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  erroWidget(context, 80)),
+                                    );
+                                  } else {
+                                    itemLabel = Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0),
+                                      child: Text(att[i],
+                                          style: TextStyle(
+                                              color: selectedId
+                                                      .contains(attListId![i])
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .white
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .fontColor)),
+                                    );
+                                  }
+                                  choiceChip = ChoiceChip(
+                                    selected:
+                                        selectedId.contains(attListId![i]),
+                                    label: itemLabel,
+                                    labelPadding: const EdgeInsets.all(0),
+                                    selectedColor: Theme.of(context)
+                                        .colorScheme
+                                        .primarytheme,
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          attSType[i] == "1" ? 100 : 10),
+                                      side: BorderSide(
+                                          color:
+                                              selectedId.contains(attListId![i])
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .primarytheme
+                                                  : colors.black12,
+                                          width: 1.5),
+                                    ),
+                                    onSelected: (bool selected) {
+                                      attListId = filterList[index]
+                                              ['attribute_values_id']
+                                          .split(',');
+                                      if (mounted) {
+                                        setState(() {
+                                          if (selected == true) {
+                                            selectedId.add(attListId![i]);
+                                          } else {
+                                            selectedId.remove(attListId![i]);
+                                          }
+                                        });
+                                      }
+                                    },
+                                  );
+                                  chips.add(choiceChip);
                                 }
-                              },
-                            );
 
-                            chips.add(choiceChip);
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: deviceWidth,
+                                      child: Card(
+                                        elevation: 0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            filterList[index]['name'],
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium!
+                                                .copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .fontColor,
+                                                  fontWeight: FontWeight.normal,
+                                                ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    chips.isNotEmpty
+                                        ? Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Wrap(
+                                              children: chips
+                                                  .map<Widget>((Widget? chip) {
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(2.0),
+                                                  child: chip,
+                                                );
+                                              }).toList(),
+                                            ),
+                                          )
+                                        : const SizedBox.shrink()
+                                  ],
+                                );
+                              }
+                            }),
+                      ),
+
+                      // Brand Filter
+                      Consumer<GetBrandsProvider>(
+                        builder: (context, providerBrand, child) {
+                          final brandData = providerBrand.brandModel?.data;
+
+                          if (brandData == null || brandData.isEmpty) {
+                            return Center(child: Text('No brands available.'));
                           }
 
                           return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(
-                                width: deviceWidth,
-                                child: Card(
-                                  elevation: 0,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      filterList[index]['name'],
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium!
-                                          .copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .fontColor,
-                                              fontWeight: FontWeight.normal),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 2,
+                              // Add the price range slider for brand filtering
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0),
+                                child: Column(
+                                  children: [
+                                    // Price Range Label
+                                    SizedBox(
+                                      width: deviceWidth,
+                                      child: Card(
+                                        elevation: 0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Brand',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium!
+                                                    .copyWith(
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .lightBlack,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                    ),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                              ),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    providerBrand.isShowBrand =
+                                                        !providerBrand
+                                                            .isShowBrand;
+                                                  });
+                                                },
+                                                child: Icon(
+                                                  providerBrand.isShowBrand
+                                                      ? Icons.keyboard_arrow_up
+                                                      : Icons
+                                                          .keyboard_arrow_down,
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ),
-                              chips.isNotEmpty
-                                  ? Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Wrap(
-                                        children:
-                                            chips.map<Widget>((Widget? chip) {
-                                          return Padding(
-                                            padding: const EdgeInsets.all(2.0),
-                                            child: chip,
-                                          );
-                                        }).toList(),
-                                      ),
-                                    )
-                                  : const SizedBox.shrink()
+                              if (providerBrand.isShowBrand)
+                                AnimatedContainer(
+                                  curve: Curves.easeInOut,
+                                  duration: const Duration(milliseconds: 300),
+                                  child: ListView.separated(
+                                    shrinkWrap: true,
+                                    itemCount: brandData.length,
+                                    itemBuilder: (context, index) {
+                                      final brand = brandData[index];
+                                      final brandName = brand.name ?? 'Unknown';
+                                      return RadioListTile<String>(
+                                        title: Text(
+                                          brandName[0].toUpperCase() +
+                                              brandName.substring(1),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                                fontWeight: FontWeight.normal,
+                                              ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        value: brand.id.toString(),
+                                        groupValue: selectedId.isNotEmpty
+                                            ? selectedId.first
+                                            : null,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            selectedId
+                                                .clear(); // Clear previously selected ID(s)
+                                            if (value != null) {
+                                              selectedId.add(
+                                                  value); // Add the new selection
+                                            }
+                                            print(
+                                                "Selected brand ID: $selectedId");
+                                          });
+                                        },
+                                      );
+                                    },
+                                    separatorBuilder: (context, index) =>
+                                        const SizedBox(height: 5),
+                                  ),
+                                ),
                             ],
                           );
-                        }
-                      })
-                  : const SizedBox.shrink(),
-            )),
-            Container(
-              color: Theme.of(context).colorScheme.white,
-              child: Row(children: <Widget>[
-                Container(
-                  margin: const EdgeInsetsDirectional.only(start: 20),
-                  width: deviceWidth! * 0.4,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      if (mounted) {
-                        setState(() {
-                          selectedId.clear();
-                          isFilterClear = true;
-                          _currentRangeValues = RangeValues(
-                              double.parse(minPrice), double.parse(maxPrice));
-                        });
-                        //Navigator.pop(context);
-                      }
-                    },
-                    child: Text(
-                      getTranslated(
-                        context,
-                        'FILTER_CLEAR_LBL',
-                      )!,
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.primarytheme),
-                    ),
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 20),
-                  child: SimBtn(
-                      width: 0.4,
-                      height: 35,
-                      title: getTranslated(context, 'APPLY'),
-                      onBtnSelected: () {
-                        print(
-                            "isfilterClear****$isFilterClear*******$selectedId");
-                        if (!isFilterClear) {
-                          if (selectedId.isEmpty) {
-                            selId = '';
+                Container(
+                  color: Theme.of(context).colorScheme.white,
+                  child: Row(children: <Widget>[
+                    Container(
+                      margin: const EdgeInsetsDirectional.only(start: 20),
+                      width: deviceWidth! * 0.4,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          if (mounted) {
+                            setState(() {
+                              selectedId.clear();
+                              isFilterClear = true;
+                              _currentRangeValues = RangeValues(
+                                  double.parse(minPrice),
+                                  double.parse(maxPrice));
+                            });
+                          }
+                        },
+                        child: Text(
+                          getTranslated(context, 'FILTER_CLEAR_LBL')!,
+                          style: TextStyle(
+                              color:
+                                  Theme.of(context).colorScheme.primarytheme),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 20),
+                      child: SimBtn(
+                        width: 0.4,
+                        height: 35,
+                        title: getTranslated(context, 'APPLY'),
+                        onBtnSelected: () {
+                          print(
+                            "isfilterClear****$isFilterClear*******${selectedId.join(',')}",
+                          );
+
+                          if (!isFilterClear) {
+                            if (selectedId.isEmpty) {
+                              selId = '';
+                            } else {
+                              setState(() {
+                                selId = selectedId.join(',');
+                                isLoadingmore = true;
+                                _isLoading = true;
+                                productList.clear();
+                                getProduct("0",
+                                    selectedBrandId: selectedId.join(','));
+                              });
+                            }
+
+                            if (mounted) {
+                              setState(() {
+                                _isLoading = true;
+                                total = 0;
+                                offset = 0;
+                                isLoadingmore = true;
+                                productList.clear();
+                              });
+                            }
+
+                            if (selectedId.isNotEmpty) {
+                              getProduct("0", selectedBrandId: selId);
+                            } else {
+                              getProduct("0", selectedBrandId: selId);
+                            }
                           } else {
-                            selId = selectedId.join(',');
+                            if (mounted) {
+                              setState(() {
+                                selId = "";
+                                query = '';
+                                sortBy = 'p.id';
+                                orderBy = "DESC";
+                                offset = 0;
+                                total = 0;
+                                isLoadingmore = true;
+                                _isLoading = true;
+                                productList.clear();
+                              });
+                            }
+
+                            getProduct("0",
+                                clear: true, selectedBrandId: selId);
                           }
 
-                          if (mounted) {
-                            setState(() {
-                              _isLoading = true;
-                              total = 0;
-                              offset = 0;
-                              isLoadingmore = true;
-                              productList.clear();
-                            });
-                          }
-                          getProduct("0");
-                        } else {
-                          if (mounted) {
-                            setState(() {
-                              selId = "";
-                              query = '';
-                              sortBy = 'p.id';
-                              orderBy = "DESC";
-                              offset = 0;
-                              total = 0;
-                              isLoadingmore = true;
-                              _isLoading = true;
-                              productList.clear();
-                            });
-                          }
-                          getProduct("0", clear: true);
-                        }
-
-                        Navigator.pop(context, 'Product Filter');
-                      }),
+                          Navigator.pop(context, 'Product Filter');
+                        },
+                      ),
+                    ),
+                  ]),
                 ),
-              ]),
-            )
-          ]);
-        });
+              ],
+            );
+          },
+        );
       },
     );
   }

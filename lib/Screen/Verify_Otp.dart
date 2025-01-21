@@ -3,11 +3,16 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:eshop/Helper/Color.dart';
+import 'package:eshop/Helper/PushNotificationService.dart';
 import 'package:eshop/Provider/SettingProvider.dart';
+import 'package:eshop/Provider/get_brands.dart';
+import 'package:eshop/Screen/Dashboard.dart';
 import 'package:eshop/Screen/HomePage.dart';
+import 'package:eshop/Screen/SignUp.dart';
 import 'package:eshop/ui/widgets/BehaviorWidget.dart';
 import 'package:eshop/ui/widgets/SimpleAppBar.dart';
 import 'package:eshop/ui/widgets/cropped_container.dart';
+import 'package:eshop/utils/Hive/hive_utils.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -600,6 +605,7 @@ class _MobileOTPState extends State<VerifyOtp> with TickerProviderStateMixin {
           log(otp.toString(), name: "Otp: ");
 
           FocusScope.of(context).requestFocus(FocusNode());
+
           _onFormSubmitted();
         });
   }
@@ -700,13 +706,32 @@ class _MobileOTPState extends State<VerifyOtp> with TickerProviderStateMixin {
               Provider.of<SettingProvider>(context, listen: false);
 
           await buttonController!.reverse(); // Stop animation
-          setSnackbar(getTranslated(context, 'OTPMSG')!,
-              context); // Show success message
+          // setSnackbar(getTranslated(context, 'OTPMSG')!,
+          // context); // Show success message
           settingsProvider.setPrefrence(MOBILE, widget.mobileNumber!);
           settingsProvider.setPrefrence(COUNTRY_CODE, widget.countryCode!);
 
           // Navigate to signup or password reset screen based on the context
-          if (widget.title == getTranslated(context, 'SEND_OTP_TITLE')) {
+          if (widget.title == getTranslated(context, 'Login')) {
+            if (otpResponse == code) {
+              signInProcess();
+              // context
+              //       .read<LoginProvider>()
+              //       .login(context, mobile: widget.mobileNumber!)
+              //       .then((val) {
+              //     Navigator.pushAndRemoveUntil(context,
+              //         BlurredRouter(builder: (BuildContext context) {
+              //       Dashboard.dashboardScreenKey = GlobalKey<HomePageState>();
+              //       return Dashboard(
+              //         key: Dashboard.dashboardScreenKey,
+              //       );
+              //     }), (route) => false);
+              // });
+            } else {
+              setSnackbar(
+                  getTranslated(context, 'Please enter valid otp')!, context);
+            }
+          } else if (widget.title == getTranslated(context, 'SEND_OTP_TITLE')) {
             Future.delayed(const Duration(seconds: 2)).then((_) {
               Navigator.pushReplacementNamed(context, Routers.signupScreen);
             });
@@ -730,6 +755,82 @@ class _MobileOTPState extends State<VerifyOtp> with TickerProviderStateMixin {
       // If OTP code is less than 6 digits
       setSnackbar(getTranslated(context, 'ENTEROTP')!, context);
     }
+  }
+
+  String? mobile,
+      username,
+      email,
+      id,
+      mobileno,
+      city,
+      area,
+      pincode,
+      address,
+      latitude,
+      longitude,
+      image,
+      loginType;
+
+  Future<void> signInProcess() async {
+    var data = {MOBILE: widget.mobileNumber, PASSWORD: "password"};
+    print("PARAMS ARE $data");
+    apiBaseHelper.postAPICall(getUserLoginApi, data).then((getdata) async {
+      bool error = getdata["error"];
+      String? msg = getdata["message"];
+      print("PARAMS ARE ${getdata['token']}");
+      await buttonController!.reverse();
+      if (!error) {
+        await HiveUtils.setJWT(getdata['token']);
+
+        // setSnackbar(msg!, context);
+
+        var i = getdata["data"][0];
+        id = i[ID];
+        username = i[USERNAME];
+        email = i[EMAIL];
+        mobile = i[MOBILE];
+        city = i[CITY];
+        area = i[AREA];
+        address = i[ADDRESS];
+        pincode = i[pinCodeOrCityNameKey];
+        latitude = i[LATITUDE];
+        longitude = i[LONGITUDE];
+        image = i[IMAGE];
+        loginType = i[TYPE];
+
+        //CUR_USERID = id;
+
+        
+
+        SettingProvider settingProvider =
+            Provider.of<SettingProvider>(context, listen: false);
+        settingProvider.setPrefrenceBool(ISFIRSTTIME, true);
+
+        settingProvider.saveUserDetail(id!, username, email, mobile, city, area,
+            address, pincode, latitude, longitude, image, loginType, context);
+
+        Future.delayed(Duration.zero, () {
+          PushNotificationService(context: context).setDeviceToken(
+              clearSesssionToken: true, settingProvider: settingProvider);
+        });
+
+        Navigator.pushAndRemoveUntil(context,
+            BlurredRouter(builder: (BuildContext context) {
+          Dashboard.dashboardScreenKey = GlobalKey<HomePageState>();
+          return Dashboard(
+            key: Dashboard.dashboardScreenKey,
+          );
+        }), (route) => false);
+      } else {
+        setSnackbar(msg!, context);
+        Navigator.pushAndRemoveUntil(context,
+            BlurredRouter(builder: (BuildContext context) {
+          return const SignUp();
+        }), (route) => false);
+      }
+    }, onError: (error) {
+      setSnackbar(error.toString(), context);
+    });
   }
 
   // void _onFormSubmitted() async {
@@ -855,7 +956,7 @@ class _MobileOTPState extends State<VerifyOtp> with TickerProviderStateMixin {
       padding: const EdgeInsetsDirectional.only(
           bottom: 10.0, start: 20.0, end: 20.0, top: 10.0),
       child: Center(
-        child: Text("+${widget.countryCode}-${widget.mobileNumber}",
+        child: Text("+${widget.countryCode ?? "91"}-${widget.mobileNumber}",
             style: Theme.of(context).textTheme.titleMedium!.copyWith(
                 color: Theme.of(context).colorScheme.fontColor,
                 fontWeight: FontWeight.normal)),

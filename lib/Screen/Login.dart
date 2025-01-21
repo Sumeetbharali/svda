@@ -9,7 +9,9 @@ import 'package:eshop/Helper/String.dart';
 import 'package:eshop/Provider/FavoriteProvider.dart';
 import 'package:eshop/Provider/SettingProvider.dart';
 import 'package:eshop/Provider/UserProvider.dart';
+import 'package:eshop/Provider/get_brands.dart';
 import 'package:eshop/Screen/Dashboard.dart';
+import 'package:eshop/Screen/Verify_Otp.dart';
 import 'package:eshop/app/routes.dart';
 import 'package:eshop/utils/Hive/hive_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -72,7 +74,7 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
   // TextEditingController(text: isDemoApp ? "Qwerty@123" : "");
 
   final mobileController = TextEditingController(text: "");
-  final passwordController = TextEditingController(text: "");
+  final TextEditingController passwordController = TextEditingController();
   // final mobileController =
   //     TextEditingController(text: isDemoApp ? "8010308357" : "");
   // final passwordController =
@@ -123,6 +125,7 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
     //       : removeSpecialChars(widget.mobileController ?? ""),
     //   // text: isDemoApp ? "8010308357" : widget.mobileController,
     // );
+    passwordController.text = "password";
     buttonSqueezeanimation = Tween(
       begin: deviceWidth! * 0.7,
       end: 50.0,
@@ -247,7 +250,7 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
   }
 
   Future<void> signInProcess() async {
-    var data = {MOBILE: mobile, PASSWORD: password};
+    var data = {MOBILE: mobile, PASSWORD: "password"};
     print("PARAMS ARE $data");
     apiBaseHelper.postAPICall(getUserLoginApi, data).then((getdata) async {
       bool error = getdata["error"];
@@ -257,7 +260,7 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
       if (!error) {
         await HiveUtils.setJWT(getdata['token']);
 
-        setSnackbar(msg!, context);
+        // setSnackbar(msg!, context);
 
         var i = getdata["data"][0];
         id = i[ID];
@@ -307,20 +310,37 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
                   });
                 }
               } else {
-                Navigator.pushAndRemoveUntil(context,
-                    BlurredRouter(builder: (BuildContext context) {
-                  Dashboard.dashboardScreenKey = GlobalKey<HomePageState>();
-                  return widget.classType ??
-                      Dashboard(
-                        key: Dashboard.dashboardScreenKey,
-                      );
-                }), (route) => false);
+                // Navigator.pushAndRemoveUntil(context,
+                //     BlurredRouter(builder: (BuildContext context) {
+                //   Dashboard.dashboardScreenKey = GlobalKey<HomePageState>();
+                //   return widget.classType ??
+                //       Dashboard(
+                //         key: Dashboard.dashboardScreenKey,
+                //       );
+                // }), (route) => false);
+
+                getVerifyUser(context, mobileController.text).then((val) {
+                  setSnackbar(
+                      getTranslated(context, 'Otp send sucessfully')!, context);
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VerifyOtp(
+                        mobileNumber: mobileController.text,
+                        countryCode: "91",
+                        title: "Login",
+                      ),
+                    ),
+                    (route) => false,
+                  );
+                });
               }
             });
           });
         });
       } else {
-        setSnackbar(msg!, context);
+        // setSnackbar(msg!, context);
       }
     }, onError: (error) {
       setSnackbar(error.toString(), context);
@@ -810,7 +830,25 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
       btnCntrl: buttonController,
       onBtnSelected: () async {
         FocusScope.of(context).requestFocus(FocusNode());
-        onTapSignIn();
+        if (mobileController.text.length == 10) {
+          getVerifyUser(context, mobileController.text).then((val) {
+            setSnackbar(
+                getTranslated(context, 'Otp send sucessfully')!, context);
+
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VerifyOtp(
+                  mobileNumber: mobileController.text,
+                  countryCode: "91",
+                  title: "Login",
+                ),
+              ),
+              (route) => false,
+            );
+          });
+        }
+        // onTapSignIn();
       },
     );
   }
@@ -907,16 +945,16 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
                       children: [
                         setSignInLabel(),
                         setMobileNo(),
-                        setPass(),
-                        forgetPass(),
+                        // setPass(),
+                        // forgetPass(),
                         loginBtn(),
-                        orDivider(),
-                        socialLoginBtn(),
-                        const SizedBox(
-                          height: 5,
-                        ),
-                        termAndPolicyTxt(),
-                        getSignUpText(),
+                        // orDivider(),
+                        // socialLoginBtn(),
+                        // const SizedBox(
+                        //   height: 5,
+                        // ),
+                        // termAndPolicyTxt(),
+                        // getSignUpText(),
                       ],
                     ),
                   ),
@@ -1575,10 +1613,10 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
       child: Align(
         alignment: Alignment.topLeft,
         child: Text(
-          getTranslated(context, 'SIGNIN_LBL')!,
+          getTranslated(context, 'Enter your number')!,
           style: TextStyle(
             color: Theme.of(context).colorScheme.primarytheme,
-            fontSize: 30,
+            fontSize: 25,
             fontWeight: FontWeight.bold,
           ),
         ),

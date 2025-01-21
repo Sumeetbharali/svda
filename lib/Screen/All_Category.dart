@@ -192,6 +192,7 @@ class AllCategoryState extends State<AllCategory> {
                   searchBar(context),
                   const SizedBox(height: 10),
                   findTHeBEst(context),
+                  const SizedBox(height: 10),
                   _catList(),
                   const SizedBox(height: 20),
                   _section(),
@@ -815,124 +816,124 @@ class AllCategoryState extends State<AllCategory> {
             ? SizedBox(
                 width: double.infinity,
                 child: Shimmer.fromColors(
-                    baseColor: Theme.of(context).colorScheme.simmerBase,
-                    highlightColor: Theme.of(context).colorScheme.simmerHigh,
-                    child: catLoading()))
+                  baseColor: Theme.of(context).colorScheme.simmerBase,
+                  highlightColor: Theme.of(context).colorScheme.simmerHigh,
+                  child: catLoading(),
+                ),
+              )
             : Container(
-                padding: const EdgeInsets.only(top: 10, left: 25),
-                child: Wrap(
-                  // crossAxisAlignment: WrapCrossAlignment.center,
-                  // runAlignment: WrapAlignment.spaceBetween,
-                  alignment: WrapAlignment.start,
-                  // direction:
-                  //     Axis.vertical,
-                  spacing: 20.0,
-                  runSpacing: 10.0,
-                  children: List.generate(
-                    catList.length,
-                    // catList.length < 9 ? catList.length : 9,
-                    (index) {
-                      // if (index == 0) {
-                      //   return const SizedBox.shrink();
-                      // } else {
-                      return Padding(
-                        // padding: EdgeInsets.zero,
-                        padding: EdgeInsets.only(
-                          left: index == 0 ? 2.0 : 0.0,
-                        ),
-                        child: GestureDetector(
-                          onTap: () async {
-                            if (catList[index].subList == null ||
-                                catList[index].subList!.isEmpty) {
-                              await Navigator.pushNamed(
-                                  context, Routers.productListScreen,
-                                  arguments: {
-                                    "name": catList[index].name,
-                                    "id": catList[index].id,
-                                    "tag": false,
-                                    "fromSeller": false,
-                                  });
-                            } else {
-                              await Navigator.pushNamed(
-                                  context, Routers.subCategoryScreen,
-                                  arguments: {
-                                    "title": catList[index].name!,
-                                    "subList": catList[index].subList,
-                                  });
-                            }
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsetsDirectional.only(
-                                    bottom: 5.0, top: 8.0),
-                                child: Container(
-                                  height: 60,
-                                  width: 60,
-                                  decoration: BoxDecoration(
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .black
-                                            .withOpacity(0.048),
-                                        spreadRadius: 2,
-                                        blurRadius: 13,
-                                        offset: const Offset(0, 0),
-                                      ),
-                                    ],
-                                    color:
-                                        const Color.fromARGB(255, 224, 224, 224)
-                                            .withOpacity(0.7),
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(10),
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: networkImageCommon(
-                                      catList[index].image!,
-                                      30,
-                                      width: 40,
-                                      height: 40,
-                                      false,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                child: Text(
-                                  breakTextIntoLines(capitalize(catList[index]
-                                      .name!
-                                      .toLowerCase())), // Split text on spaces
-                                  maxLines: 2,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall!
-                                      .copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .fontColor,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                      ),
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                      // }
-                    },
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4, // 3 items per row
+                    crossAxisSpacing: 5.0, // Spacing between columns
+                    mainAxisSpacing: 5.0, // Spacing between rows
+                    childAspectRatio: 0.65, // Adjust width/height ratio
                   ),
+                  itemCount: catList.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () async {
+                        if (catList[index].subList == null ||
+                            catList[index].subList!.isEmpty) {
+                          await Navigator.pushNamed(
+                            context,
+                            Routers.productListScreen,
+                            arguments: {
+                              "name": catList[index].name,
+                              "id": catList[index].id,
+                              "tag": false,
+                              "fromSeller": false,
+                            },
+                          );
+                        } else {
+                          await Navigator.pushNamed(
+                            context,
+                            Routers.subCategoryScreen,
+                            arguments: {
+                              "title": catList[index].name!,
+                              "subList": catList[index].subList,
+                            },
+                          );
+                        }
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                            height: 65,
+                            width: 75,
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .black
+                                      .withOpacity(0.048),
+                                  spreadRadius: 2,
+                                  blurRadius: 13,
+                                  offset: const Offset(0, 0),
+                                ),
+                              ],
+                              color: const Color.fromARGB(255, 224, 224, 224)
+                                  .withOpacity(0.7),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                            child: Center(
+                              child: networkImageCommon(
+                                catList[index].image!,
+                                30,
+                                width: 50,
+                                height: 50,
+                                false,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            (formatText(catList[index].name!)),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall!
+                                .copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.fontColor,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               );
       },
       selector: (_, homeProvider) => homeProvider.catLoading,
     );
+  }
+
+  String formatText(String input) {
+    // Split the input text into words
+    List<String> words = input.split(' ');
+
+    // Group words into chunks of 2 per line
+    List<String> lines = [];
+    for (int i = 0; i < words.length; i += 2) {
+      lines.add(words
+          .sublist(i, i + 2 > words.length ? words.length : i + 2)
+          .join(' '));
+    }
+
+    // Combine chunks into a string with line breaks
+    return lines.take(2).join('\n'); // Limit to 2 lines
   }
 
   String breakTextIntoLines(String text) {

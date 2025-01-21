@@ -307,7 +307,7 @@ class StateFlashList extends State<FlashProductList>
         }
       }
     } on FormatException catch (e) {
-      setSnackbar(e.message, context);
+      // setSnackbar(e.message, context);
     }
   }
 
@@ -411,7 +411,7 @@ class StateFlashList extends State<FlashProductList>
         }
       }
     } on FormatException catch (e) {
-      setSnackbar(e.message, context);
+      // setSnackbar(e.message, context);
     }
   }
 

@@ -587,7 +587,7 @@ class PushNotificationService {
         setSnackbar(error.toString(), context);
       });
     } on FormatException catch (e) {
-      setSnackbar(e.message, context);
+      // setSnackbar(e.message, context);
     }
   }
 }

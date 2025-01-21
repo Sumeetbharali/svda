@@ -663,7 +663,7 @@ class _FlashSaleState extends State<FlashSale> with TickerProviderStateMixin {
         });
       });
     } on FormatException catch (e) {
-      setSnackbar(e.message, context);
+      // setSnackbar(e.message, context);
     }
   }
 
@@ -710,7 +710,7 @@ class _FlashSaleState extends State<FlashSale> with TickerProviderStateMixin {
     } on FormatException catch (e) {
       if (mounted) {
         // Check if the widget is still mounted before showing a snackbar.
-        setSnackbar(e.message, context);
+        // setSnackbar(e.message, context);
       }
     }
   }

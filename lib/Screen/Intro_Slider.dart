@@ -1,5 +1,6 @@
 import 'package:eshop/Helper/Session.dart';
 import 'package:eshop/Helper/String.dart';
+import 'package:eshop/Screen/Login.dart';
 import 'package:eshop/Screen/SignInUpAcc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -268,11 +269,11 @@ class _GettingStartedScreenState extends State<IntroSlider>
           physics: const NeverScrollableScrollPhysics(),
           itemCount: 2,
           itemBuilder: (context, index) {
-            if (index == 0) {
-              return _introPage(context);
-            } else {
-              return _welcomePage(context);
-            }
+            // if (index == 0) {
+            //   return _introPage(context);
+            // } else {
+            return _welcomePage(context);
+            // }
           },
         ),
       ),
@@ -435,9 +436,12 @@ class _GettingStartedScreenState extends State<IntroSlider>
                     Navigator.pushReplacement(
                       context,
                       CupertinoPageRoute(
-                          builder: (context) => const SignInUpAcc(
-                                isPop: false,
-                              )),
+                          builder: (context) =>
+                              const LoginScreen(isPop: false)),
+                      // CupertinoPageRoute(
+                      //     builder: (context) => const SignInUpAcc(
+                      //           isPop: false,
+                      //         )),
                     );
                   },
                   child: Text(
