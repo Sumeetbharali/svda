@@ -4,7 +4,7 @@ class AppSettings {
   ///
   ///App Name
   static const String appName = 'Suvidha';
-  static const String packageName = 'com.orbitxmedia.suvidha';
+  static const String packageName = 'com.orbitxmediaa.suvidha';
   // static const String packageName = 'com.eshopsingle.customer';
   static const String iosPackage = 'com.wrteam.eshop';
   static const String iosLink = 'your ios link here';

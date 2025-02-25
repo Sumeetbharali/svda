@@ -630,8 +630,7 @@ class _MobileOTPState extends State<VerifyOtp> with TickerProviderStateMixin {
             Future.delayed(const Duration(seconds: 2)).then((_) {
               settingsProvider.setPrefrence(MOBILE, widget.mobileNumber!);
               settingsProvider.setPrefrence(COUNTRY_CODE, widget.countryCode!);
-              // Navigator.pushReplacement(context,
-              //     CupertinoPageRoute(builder: (context) => const SignUp()));
+              // Navigator.pushReplacement(context,CupertinoPageRoute(builder: (context) => const SignUp()));
               Navigator.pushReplacementNamed(context, Routers.signupScreen);
             });
           } else if (widget.title ==
@@ -799,8 +798,6 @@ class _MobileOTPState extends State<VerifyOtp> with TickerProviderStateMixin {
         loginType = i[TYPE];
 
         //CUR_USERID = id;
-
-        
 
         SettingProvider settingProvider =
             Provider.of<SettingProvider>(context, listen: false);

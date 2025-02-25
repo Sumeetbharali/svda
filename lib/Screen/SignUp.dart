@@ -169,8 +169,8 @@ class _SignUpPageState extends State<SignUp> with TickerProviderStateMixin {
     try {
       var data = {
         MOBILE: mobile,
-        NAME: name,
-        EMAIL: email,
+        NAME: "User",
+        EMAIL: "yourmail@gmail.com",
         PASSWORD: "password",
         COUNTRY_CODE: countrycode ?? "IN",
         REFERCODE: referCode ?? "",
@@ -206,11 +206,11 @@ class _SignUpPageState extends State<SignUp> with TickerProviderStateMixin {
             );
           }), (route) => false);
         } else {
-          setSnackbar(msg!, context);
+          // setSnackbar(msg!, context);
         }
         if (mounted) setState(() {});
       }, onError: (error) {
-        setSnackbar(error.toString(), context);
+        // setSnackbar(error.toString(), context);
       });
     } on TimeoutException catch (_) {
       setSnackbar(getTranslated(context, 'somethingMSg')!, context);
@@ -487,16 +487,31 @@ class _SignUpPageState extends State<SignUp> with TickerProviderStateMixin {
   }
 
   verifyBtn() {
-    return AppBtn(
-      title: getTranslated(context, 'SAVE_LBL'),
-      btnAnim: buttonSqueezeanimation,
-      btnCntrl: buttonController,
-      onBtnSelected: () async {
-        FocusScope.of(context).requestFocus(FocusNode());
-        validateAndSubmit();
-      },
+    return SizedBox(
+      height: 45,
+      width: 200,
+      child: ElevatedButton(
+        onPressed: () async {
+          FocusScope.of(context).requestFocus(FocusNode());
+          validateAndSubmit();
+        },
+        child: const Text("Click here to continue"),
+      ),
     );
   }
+  // verifyBtn() {
+  //   return AppBtn(
+  //     title:
+  //         getTranslated(context, 'Welcome to Suvida , Click here to continue'),
+  //     // title: getTranslated(context, 'SAVE_LBL'),
+  //     btnAnim: buttonSqueezeanimation,
+  //     btnCntrl: buttonController,
+  //     onBtnSelected: () async {
+  // FocusScope.of(context).requestFocus(FocusNode());
+  // validateAndSubmit();
+  //     },
+  //   );
+  // }
 
   loginTxt() {
     return Padding(
@@ -695,17 +710,26 @@ class _SignUpPageState extends State<SignUp> with TickerProviderStateMixin {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.10,
-                      ),
-                      registerTxt(),
-                      setUserName(),
-                      setEmail(),
+                      // SizedBox(
+                      //   height: MediaQuery.of(context).size.height * 0.10,
+                      // ),
+                      // registerTxt(),
+                      // setUserName(),
+                      // setEmail(),
                       // setPass(),
                       // setRefer(),
-                      const SizedBox(height: 20),
+                      Text(getTranslated(context, 'Welcome to Suvidha')!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall!
+                              .copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.fontColor,
+                                  fontWeight: FontWeight.normal)),
+                      const SizedBox(height: 50),
+
                       verifyBtn(),
-                      loginTxt(),
+                      // loginTxt(),
                     ],
                   ),
                 ),

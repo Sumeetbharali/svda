@@ -1,4 +1,4 @@
-package com.orbitxmedia.suvidha
+package com.orbitxmediaa.suvidha
 
 /*
 import io.flutter.embedding.android.FlutterActivity

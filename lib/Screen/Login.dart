@@ -643,7 +643,10 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
         ),
         focusNode: monoFocus,
         textInputAction: TextInputAction.next,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(10)
+        ],
         validator: (val) => validateMob(
             val!,
             getTranslated(context, 'MOB_REQUIRED'),
@@ -791,14 +794,14 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
   getSignUpText() {
     return Padding(
       padding: const EdgeInsetsDirectional.only(
-          bottom: 20.0, start: 25.0, end: 25.0, top: 20.0),
+          bottom: 10.0, start: 25.0, end: 25.0, top: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text(getTranslated(context, 'DONT_HAVE_AN_ACC')!,
-              style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: Theme.of(context).colorScheme.fontColor,
-                  fontWeight: FontWeight.normal)),
+          // Text(getTranslated(context, 'DONT_HAVE_AN_ACC')!,
+          //     style: Theme.of(context).textTheme.bodySmall!.copyWith(
+          //         color: Theme.of(context).colorScheme.fontColor,
+          //         fontWeight: FontWeight.normal)),
           InkWell(
               onTap: () {
                 // Navigator.of(context).push(CupertinoPageRoute(
@@ -807,16 +810,24 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
                 //   ),
                 // ));
 
-                Navigator.pushNamed(context, Routers.sendOTPScreen, arguments: {
-                  "title": getTranslated(context, 'SEND_OTP_TITLE')
-                });
+                Navigator.pushNamed(context, Routers.dashboardScreen);
+                // Navigator.pushNamed(context, Routers.sendOTPScreen, arguments: {
+                //   "title": getTranslated(context, 'SEND_OTP_TITLE')
+                // });
               },
-              child: Text(
-                getTranslated(context, 'SIGN_UP_LBL')!,
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    color: Theme.of(context).colorScheme.fontColor,
-                    decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.normal),
+              child: Row(
+                children: [
+                  const Icon(Icons.person_outline_sharp, size: 18),
+                  Text(
+                    getTranslated(context, 'Guest')!,
+                    // getTranslated(context, 'SIGN_UP_LBL')!,
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        // style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: Theme.of(context).colorScheme.fontColor,
+                        decoration: TextDecoration.underline,
+                        fontWeight: FontWeight.normal),
+                  ),
+                ],
               ))
         ],
       ),
@@ -948,13 +959,12 @@ class _LoginPageState extends State<LoginScreen> with TickerProviderStateMixin {
                         // setPass(),
                         // forgetPass(),
                         loginBtn(),
+
                         // orDivider(),
                         // socialLoginBtn(),
-                        // const SizedBox(
-                        //   height: 5,
-                        // ),
+                        // const SizedBox(height: 5),
                         // termAndPolicyTxt(),
-                        // getSignUpText(),
+                        getSignUpText(),
                       ],
                     ),
                   ),
